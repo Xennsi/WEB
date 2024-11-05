@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Room: {{ chat_room.name }}</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #8e9eab, #eef2f3);
+            color: #333;
+        }
+
+        .chat-container {
+            width: 90%;
+            max-width: 600px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+        }
+
+        h2 {
+            text-align: center;
+            color: #4b6cb7;
+            margin-bottom: 1rem;
+        }
+
+        .chat-messages {
+            border: 1px solid #ddd;
+            padding: 10px;
+            height: 400px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 12px;
+            word-wrap: break-word;
+            display: inline-block;
+            position: relative;
+        }
+
+        .own-message {
+            background-color: #d1f0f7;
+            color: #004d40;
+            align-self: flex-end;
+            border-top-right-radius: 0;
+        }
+
+        .other-message {
+            background-color: #fff;
+            color: #333;
+            border-top-left-radius: 0;
+            border: 1px solid #ddd;
+            align-self: flex-start;
+        }
+
+        .timestamp {
+            display: block;
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        #send-message {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #message-text {
+            flex-grow: 1;
+            padding: 10px;
+            font-size: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        #send-button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            color: #fff;
+            background-color: #4b6cb7;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        #send-button:hover {
+            background-color: #3a5aa7;
+        }
+
+        .notification {
+            font-style: italic;
+            color: #555;
+            text-align: center;
+        }
+
+        #leave-button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            color: #fff;
+            background-color: #ff4d4d;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            align-self: center;
+        }
+
+        #leave-button:hover {
+            background-color: #e63939;
+        }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <h2>Chat Room: {{ chat_room.name }}</h2>
+    <div id="chat-messages" class="chat-messages">
+        {% for message in messages %}
+        <div class="message {% if message.user.email == user.email %}own-message{% else %}other-message{% endif %}">
+            {% if message.user.email != user.email %}
+                <strong>{{ message.user.email }}</strong><br>
+            {% endif %}
+            {{ message.content }}
+            <span class="timestamp">{{ message.timestamp.strftime('%Y-%m-%d %H:%M') }}</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <form id="send-message">
+        <input type="text" id="message-text" placeholder="Type your message..." autocomplete="off" required />
+        <button type="submit" id="send-button">Send</button>
+    </form>
+
+    <!-- Кнопка выхода из чата -->
+    <button id="leave-button">Выйти из чата</button>
+</div>
+
+<script>
+    const chat_room_id = "{{ chat_room.id }}";
+    const user_token = "{{ user_token }}";
+    const user_email = "{{ user.email }}";
+
+    const ws = new WebSocket(`ws://${window.location.hostname}/ws/${chat_room_id}?token=${user_token}`);
+
+    ws.onopen = () => {
+        console.log("WebSocket connection established.");
+    };
+
+    ws.onclose = () => {
+        console.log("WebSocket connection closed.");
+        const chatMessages = document.getElementById("chat-messages");
+        const messageElement = document.createElement("div");
+        messageElement.innerHTML = `<em>Вы отключились от чата</em>`;
+        messageElement.classList.add("notification");
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    };
+
+    ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+    };
+
+    ws.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        const chatMessages = document.getElementById("chat-messages");
+        const messageElement = document.createElement("div");
+
+        if (data.type === "notification") {
+            messageElement.innerHTML = `<em>${data.message}</em>`;
+            messageElement.classList.add("notification");
+        } else if (data.type === "message") {
+            const { user, content, timestamp } = data;
+            const isOwnMessage = user === user_email;
+            messageElement.classList.add("message", isOwnMessage ? "own-message" : "other-message");
+
+            messageElement.innerHTML = `${isOwnMessage ? '' : `<strong>${user}</strong><br>`} ${content} <span class="timestamp">${timestamp}</span>`;
+        }
+
+        chatMessages.appendChild(messageElement);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    };
+
+    document.getElementById("send-message").addEventListener("submit", function(event) {
+        event.preventDefault();
+        const messageInput = document.getElementById("message-text");
+        const message = messageInput.value.trim();
+
+        if (message) {
+            ws.send(JSON.stringify({
+                type: "message",
+                content: message
+            }));
+            messageInput.value = "";
+        }
+    });
+
+    // Обработчик для кнопки "Выйти из чата"
+    document.getElementById("leave-button").addEventListener("click", function() {
+        ws.close(); // Закрываем WebSocket
+        window.location.href = "/chatrooms/"; // Перенаправляем пользователя на главную страницу или другую страницу
+    });
+</script>
+
+</body>
+</html>

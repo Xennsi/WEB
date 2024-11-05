@@ -1,0 +1,30 @@
+# Python files
+*.pyc
+__pycache__/
+
+# Environment and virtual environment
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE and Editor config files
+.vscode/
+.idea/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Docker-related files
+docker-compose.override.yml
+*.log
+
+# Node.js dependencies (if you have any front-end code with Node)
+node_modules/
+
+# Ignore build files
+/build/
+dist/
+*.egg-info/
