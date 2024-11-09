@@ -12,33 +12,34 @@
             min-height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #8e9eab, #eef2f3);
-            color: #333;
+            background: #1a1a1a; /* Темный фон */
+            color: #e0c097; /* Золотистый текст */
         }
 
         .chat-container {
             width: 90%;
             max-width: 600px;
-            background: #fff;
+            background: #2e2e2e; /* Темно-серый фон для блока чата */
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
         }
 
         h2 {
             text-align: center;
-            color: #4b6cb7;
+            color: #e0c097;
             margin-bottom: 1rem;
+            font-weight: normal;
         }
 
         .chat-messages {
-            border: 1px solid #ddd;
+            border: 1px solid #555; /* Темная граница для блока сообщений */
             padding: 10px;
             height: 400px;
             overflow-y: auto;
-            background-color: #f9f9f9;
+            background-color: #1f1f1f; /* Темный фон для сообщений */
             border-radius: 8px;
             margin-bottom: 15px;
             display: flex;
@@ -53,21 +54,20 @@
             word-wrap: break-word;
             display: inline-block;
             position: relative;
+            color: #e0c097;
         }
 
         .own-message {
-            background-color: #d1f0f7;
-            color: #004d40;
+            background-color: #3a3a3a;
             align-self: flex-end;
             border-top-right-radius: 0;
         }
 
         .other-message {
-            background-color: #fff;
-            color: #333;
-            border-top-left-radius: 0;
-            border: 1px solid #ddd;
+            background-color: #444;
             align-self: flex-start;
+            border-top-left-radius: 0;
+            color: #e0c097;
         }
 
         .timestamp {
@@ -88,7 +88,9 @@
             flex-grow: 1;
             padding: 10px;
             font-size: 1rem;
-            border: 1px solid #ddd;
+            border: 1px solid #555;
+            background: #333;
+            color: #e0c097;
             border-radius: 8px;
             outline: none;
         }
@@ -96,20 +98,20 @@
         #send-button {
             padding: 10px 20px;
             font-size: 1rem;
-            color: #fff;
-            background-color: #4b6cb7;
+            color: #1a1a1a;
+            background-color: #e0c097;
             border: none;
             border-radius: 8px;
             cursor: pointer;
         }
 
         #send-button:hover {
-            background-color: #3a5aa7;
+            background-color: #d4b484;
         }
 
         .notification {
             font-style: italic;
-            color: #555;
+            color: #b3b3b3;
             text-align: center;
         }
 
@@ -118,7 +120,7 @@
             padding: 10px 20px;
             font-size: 1rem;
             color: #fff;
-            background-color: #ff4d4d;
+            background-color: #d43f3f;
             border: none;
             border-radius: 8px;
             cursor: pointer;
@@ -126,7 +128,7 @@
         }
 
         #leave-button:hover {
-            background-color: #e63939;
+            background-color: #b53030;
         }
     </style>
 </head>

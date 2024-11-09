@@ -58,13 +58,13 @@ def show_register_form(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
 
 # Регистрация пользователя
-@app.post("/register/")
-def register_user(email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+@app.post("/register/", response_class=HTMLResponse)
+async def register_user(request: Request, email: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     try:
         user_in_db = crud.get_user_by_email(db, email=email)
         if user_in_db:
-            logger.warning(f"Пользователь с email {email} уже существует.")
-            return HTMLResponse(content="Пользователь с таким email уже существует.", status_code=400)
+            error = "Пользователь с таким email уже существует."
+            return templates.TemplateResponse("register.html", {"request": request, "error": error})
 
         user = crud.create_user(db=db, email=email, password=password)
         logger.info(f"Пользователь с email {email} успешно зарегистрирован.")
@@ -79,25 +79,18 @@ def show_login_form(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
 
 # Вход пользователя и получение токена
-@app.post("/token")
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+@app.post("/token", response_class=HTMLResponse)
+async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends(),
+                                 db: Session = Depends(get_db)):
     user = crud.get_user_by_email(db, email=form_data.username)
-    if not user:
-        logger.warning(f"Пользователь с email {form_data.username} не найден.")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
 
-    if not verify_password(form_data.password, user.hashed_password):
-        logger.warning(f"Неверный пароль для пользователя: {form_data.username}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+    # Проверка на существование пользователя
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        error = "Неверный логин или пароль."
+        # Возвращаем HTML-шаблон с сообщением об ошибке
+        return templates.TemplateResponse("login.html", {"request": request, "error": error})
 
+    # Если логин успешен, создаем токен и перенаправляем на страницу чатов
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(data={"sub": user.email}, expires_delta=access_token_expires)
 
@@ -106,6 +99,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
 
     logger.info(f"Пользователь {form_data.username} успешно вошел в систему.")
     return response
+
 
 # Маршрут для получения всех комнат чата или поиска по названию
 @app.get("/chatrooms/", response_class=HTMLResponse)

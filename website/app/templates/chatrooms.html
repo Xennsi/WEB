@@ -12,25 +12,26 @@
             min-height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #8e9eab, #eef2f3);
-            color: #333;
+            background: #1a1a1a; /* Темный фон */
+            color: #e0c097; /* Золотистый цвет для текста */
         }
 
         .container {
             width: 90%;
             max-width: 800px;
-            background: #fff;
+            background: #2e2e2e; /* Темно-серый фон для блока */
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
         h1, h2, h3 {
-            color: #4b6cb7;
+            color: #e0c097; /* Золотистый цвет для заголовков */
             text-align: center;
+            font-weight: normal;
         }
 
         h1 {
@@ -48,7 +49,6 @@
             padding: 0;
             margin: 0;
             display: grid;
-            grid-template-columns: 1fr;
             gap: 10px;
             width: 100%;
         }
@@ -57,20 +57,24 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #f9f9f9;
+            background: #3b3b3b; /* Чуть светлее для выделения */
             padding: 15px;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
         }
 
         .chat-item a {
             text-decoration: none;
-            color: #4b6cb7;
+            color: #e0c097;
             font-weight: bold;
         }
 
+        .chat-item a:hover {
+            color: #d4b484;
+        }
+
         .chat-item button {
-            background: #e74c3c;
+            background: #d43f3f; /* Красный для кнопки "Удалить" */
             border: none;
             color: #fff;
             padding: 6px 12px;
@@ -81,53 +85,58 @@
         }
 
         .chat-item button:hover {
-            background: #c0392b;
+            background: #b53030; /* Темнее при наведении */
         }
 
         .create-room-form, .search-chat-form {
             display: flex;
-            align-items: center;
             gap: 10px;
             margin: 10px 0;
+            width: 100%;
         }
 
         .create-room-form input, .search-chat-form input {
             padding: 10px;
             font-size: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            border: 1px solid #555;
+            background: #444; /* Тёмный фон для полей ввода */
+            color: #e0c097; /* Золотистый текст */
+            border-radius: 8px;
             outline: none;
             width: 70%;
+            transition: border-color 0.3s;
+        }
+
+        .create-room-form input:focus, .search-chat-form input:focus {
+            border-color: #e0c097;
         }
 
         .create-room-form button, .search-chat-form button, #logout-button {
-            background: #4b6cb7;
-            color: #fff;
+            background: #e0c097; /* Золотистая кнопка */
+            color: #1a1a1a; /* Тёмный текст */
             border: none;
             padding: 10px 20px;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 1rem;
             transition: background 0.3s;
         }
 
         .create-room-form button:hover, .search-chat-form button:hover, #logout-button:hover {
-            background: #3a5aa7;
+            background: #d4b484; /* Темнее при наведении */
         }
 
         /* Кнопка выхода из аккаунта */
         #logout-button {
-            background: #ff4d4d;
-            margin-top: 20px;
-            padding: 10px 20px;
-            font-size: 1rem;
-            border-radius: 5px;
+            background: #d43f3f; /* Красный для кнопки выхода */
             color: white;
-            cursor: pointer;
+            margin-top: 20px;
+            font-size: 1rem;
+            padding: 10px 20px;
         }
 
         #logout-button:hover {
-            background: #e63939;
+            background: #b53030;
         }
     </style>
 </head>
@@ -185,36 +194,28 @@
 <script>
     // Функция для выхода из аккаунта
     function logout() {
-        // Удаляем токен (это зависит от вашей реализации хранения токена)
-        // Если токен хранится в cookies/localStorage, удалите его:
         localStorage.removeItem('token');
-        // Перенаправляем на страницу входа
         window.location.href = "/login";
     }
 
-    // Функции для создания, удаления и поиска комнат
+    // Функция для создания комнаты
     function createRoom(token) {
         const roomName = document.getElementById('new-room-name').value.trim();
-
         if (!token) {
             alert("Токен авторизации недоступен. Пожалуйста, войдите в систему.");
             return;
         }
-
         if (roomName === "") {
             alert("Пожалуйста, введите название комнаты.");
             return;
         }
-
         fetch('/chatrooms/create', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Authorization': 'Bearer ' + token
             },
-            body: new URLSearchParams({
-                'name': roomName
-            })
+            body: new URLSearchParams({ 'name': roomName })
         })
         .then(response => {
             if (!response.ok) {
@@ -224,7 +225,7 @@
         })
         .then(data => {
             alert("Комната создана!");
-            location.reload();  // Перезагружаем страницу после создания
+            location.reload(); // Перезагружаем страницу
         })
         .catch(error => {
             console.error('Ошибка:', error);
@@ -232,12 +233,12 @@
         });
     }
 
+    // Функция для удаления комнаты
     function deleteRoom(roomId, token) {
         if (!token) {
             alert("Токен авторизации недоступен. Пожалуйста, войдите в систему.");
             return;
         }
-
         fetch(`/chatrooms/delete/${roomId}`, {
             method: 'DELETE',
             headers: {
@@ -252,7 +253,7 @@
         })
         .then(data => {
             alert("Комната удалена!");
-            location.reload();  // Перезагружаем страницу после удаления
+            location.reload();
         })
         .catch(error => {
             console.error('Ошибка:', error);
@@ -260,14 +261,13 @@
         });
     }
 
+    // Функция для поиска комнат
     function searchChatRooms(token) {
         const query = document.getElementById('search-query').value.trim();
-
         if (!token) {
             alert("Токен авторизации недоступен. Пожалуйста, войдите в систему.");
             return;
         }
-
         fetch(`/chatrooms/search?query=${encodeURIComponent(query)}`, {
             method: 'GET',
             headers: {
@@ -283,7 +283,6 @@
         .then(data => {
             const allChatroomsList = document.getElementById('all-chatrooms-list');
             allChatroomsList.innerHTML = '';
-
             if (data.chatrooms.length > 0) {
                 data.chatrooms.forEach(chatroom => {
                     const li = document.createElement('li');
